@@ -1,4 +1,4 @@
-// Bible Data and API Integration
+A// Bible Data and API Integration
 const bibleData = {
   books: [
     // Old Testament
@@ -96,12 +96,12 @@ const bibleData = {
   ],
 
   translations: {
-    kjv: "King James Version",
-    asv: "American Standard Version",
-    web: "World English Bible",
-    ylt: "Young's Literal Translation",
-    heb: "Hebrew Bible",
-    grc: "Greek New Testament (SBLGNT)",
+    kjv: { name: "King James Version", testament: "both" },
+    asv: { name: "American Standard Version", testament: "both" },
+    web: { name: "World English Bible", testament: "both" },
+    ylt: { name: "Young's Literal Translation", testament: "both" },
+    heb: { name: "Hebrew Bible", testament: "old" },
+    grc: { name: "Greek New Testament (SBLGNT)", testament: "new" },
   },
 
   // Build regex pattern for verse detection
@@ -161,5 +161,27 @@ const bibleData = {
       console.error("Error fetching chapter:", error);
       return null;
     }
+  },
+
+  // Get books available for a specific translation
+  getBooksForTranslation(translation) {
+    const trans = this.translations[translation];
+    if (!trans || trans.testament === "both") {
+      return this.books;
+    }
+
+    const oldTestamentCount = 39;
+    if (trans.testament === "old") {
+      return this.books.slice(0, oldTestamentCount);
+    } else if (trans.testament === "new") {
+      return this.books.slice(oldTestamentCount);
+    }
+    return this.books;
+  },
+
+  // Check if a book is available in the current translation
+  isBookAvailable(bookName, translation) {
+    const books = this.getBooksForTranslation(translation);
+    return books.some((b) => b.name === bookName);
   },
 };
