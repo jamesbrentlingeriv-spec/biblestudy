@@ -1,4 +1,4 @@
-W// Main Application Controller
+// Main Application Controller
 class BibleStudyApp {
   constructor() {
     this.currentBook = "John";
@@ -227,9 +227,9 @@ class BibleStudyApp {
   escapeHtml(value) {
     return String(value)
       .replace(/&/g, "&amp;")
-      .replace(/</g, "<")
-      .replace(/>/g, ">")
-      .replace(/"/g, """)
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
   }
 
@@ -388,9 +388,30 @@ document.addEventListener("DOMContentLoaded", () => {
   const splash = document.getElementById("splashScreen");
   const appRoot = document.getElementById("appRoot");
 
-  setTimeout(() => {
-    if (splash) splash.classList.add("hidden");
-    if (appRoot) appRoot.classList.remove("hidden");
-    app = new BibleStudyApp();
-  }, 3000);
+  // Function to hide splash and initialize app
+  const initializeApp = () => {
+    try {
+      if (splash) {
+        splash.style.display = "none";
+        splash.classList.add("hidden");
+      }
+      if (appRoot) {
+        appRoot.classList.remove("hidden");
+      }
+      app = new BibleStudyApp();
+    } catch (error) {
+      console.error("Error initializing app:", error);
+      // Still hide splash even if there's an error
+      if (splash) {
+        splash.style.display = "none";
+        splash.classList.add("hidden");
+      }
+      if (appRoot) {
+        appRoot.classList.remove("hidden");
+      }
+    }
+  };
+
+  // Initialize after a short delay to allow GIF to play
+  setTimeout(initializeApp, 3000);
 });
