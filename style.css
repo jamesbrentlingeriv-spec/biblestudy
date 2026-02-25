@@ -1,0 +1,345 @@
+/* Custom styles for Scripture Study Suite */
+:root {
+    --verse-highlight: #fef3c7;
+    --verse-active: #dbeafe;
+    --sidebar-width: 24rem;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.font-serif {
+    font-family: 'Merriweather', serif;
+}
+
+/* Bible Text Styling */
+.bible-verse {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    position: relative;
+    line-height: 1.8;
+}
+
+.bible-verse:hover {
+    background-color: #f1f5f9;
+}
+
+.bible-verse .verse-number {
+    color: #6366f1;
+    font-weight: 700;
+    font-size: 0.875rem;
+    margin-right: 0.5rem;
+    font-family: 'Inter', sans-serif;
+    user-select: none;
+}
+
+.words-of-christ {
+    color: #b91c1c;
+    font-weight: 500;
+}
+
+.bible-verse.selected {
+    background-color: #e0e7ff;
+    border-left: 3px solid #6366f1;
+}
+
+/* Note Content Styling */
+#noteContent {
+    background-image: linear-gradient(transparent 95%, #e2e8f0 95%);
+    background-size: 100% 2rem;
+    line-height: 2rem;
+}
+
+/* Verse References in Notes */
+.verse-reference {
+    background-color: #e0e7ff;
+    color: #4338ca;
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 2px solid #6366f1;
+}
+
+.verse-reference:hover {
+    background-color: #c7d2fe;
+}
+
+.verse-reference.active {
+    background-color: #fef3c7;
+    color: #92400e;
+    border-bottom-color: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+}
+
+/* Sidebar Verse Cards */
+.verse-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.verse-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: #6366f1;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.verse-card.active {
+    border-color: #f59e0b;
+    background-color: #fffbeb;
+    box-shadow: 0 4px 6px -1px rgba(245, 158, 11, 0.1), 0 2px 4px -1px rgba(245, 158, 11, 0.06);
+}
+
+.verse-card.active::before {
+    opacity: 1;
+    background: #f59e0b;
+}
+
+.verse-card .verse-reference-text {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6366f1;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.verse-card .verse-content {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: #334155;
+    font-family: 'Merriweather', serif;
+}
+
+/* Saved Notes List */
+.note-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: #ffffff;
+    padding: 0.5rem;
+}
+
+.note-item.active {
+    border-color: #6366f1;
+    background: #eef2ff;
+}
+
+.note-load {
+    text-align: left;
+    flex: 1;
+    min-width: 0;
+}
+
+.note-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #334155;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.note-meta {
+    font-size: 0.6875rem;
+    color: #64748b;
+    margin-top: 0.15rem;
+}
+
+.note-preview {
+    font-size: 0.6875rem;
+    color: #475569;
+    margin-top: 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.note-delete {
+    padding: 0.25rem;
+    border-radius: 0.375rem;
+    color: #dc2626;
+}
+
+.note-delete:hover {
+    background: #fee2e2;
+}
+
+/* Study Songs */
+.song-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    background: #fff;
+    padding: 0.5rem;
+}
+
+.song-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.song-item-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #334155;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.song-item-delete {
+    padding: 0.2rem;
+    border-radius: 0.375rem;
+    color: #ef4444;
+}
+
+.song-item-delete:hover {
+    background: #fee2e2;
+}
+
+.song-item-preview {
+    font-size: 0.6875rem;
+    color: #475569;
+    margin-top: 0.35rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.song-item-insert {
+    margin-top: 0.4rem;
+    font-size: 0.6875rem;
+    color: #4338ca;
+    background: #eef2ff;
+    border-radius: 0.35rem;
+    padding: 0.2rem 0.45rem;
+}
+
+.song-item-insert:hover {
+    background: #e0e7ff;
+}
+
+/* Audio Visualizer */
+#audioVisualizer {
+    width: 100%;
+    max-width: 200px;
+    height: 40px;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 1024px) {
+    #biblePanel,
+    #contextSidebar {
+        position: fixed;
+        top: 0;
+        height: 100vh;
+        z-index: 40;
+        background: white;
+    }
+    
+    #biblePanel {
+        left: 0;
+        width: 85%;
+        max-width: 400px;
+    }
+    
+    #contextSidebar {
+        right: 0;
+        width: 85%;
+        max-width: 400px;
+    }
+    
+    .panel-open-left {
+        transform: translateX(0) !important;
+    }
+    
+    .panel-open-right {
+        transform: translateX(0) !important;
+    }
+}
+
+/* Animation for recording pulse */
+@keyframes pulse-red {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+    }
+}
+
+.recording-pulse {
+    animation: pulse-red 2s infinite;
+}
+
+/* Toast Animation */
+.toast-show {
+    transform: translateY(0) !important;
+}
+
+/* Loading States */
+.loading-shimmer {
+    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 0.5rem;
+    height: 1rem;
+    margin: 0.5rem 0;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Print Styles */
+@media print {
+    header, aside, #audioRecorder, .no-print {
+        display: none !important;
+    }
+    
+    #noteContent {
+        background-image: none;
+        height: auto;
+        overflow: visible;
+    }
+}
