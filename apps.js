@@ -186,12 +186,18 @@ class BibleStudyApp {
       return;
     }
 
+    const isHebrew = this.currentTranslation === "heb";
+    const textClass = isHebrew
+      ? "text-slate-800 text-xl font-serif"
+      : "text-slate-800";
+    const dirAttr = isHebrew ? 'dir="rtl" lang="he"' : "";
+
     content.innerHTML = data.verses
       .map(
         (verse) => `
             <div class="bible-verse group" data-reference="${verse.book_name} ${verse.chapter}:${verse.verse}" onclick="app.selectVerse(this)">
                 <span class="verse-number">${verse.verse}</span>
-                <span class="text-slate-800">${this.formatVerseText(verse)}</span>
+                <span class="${textClass}" ${dirAttr}>${this.formatVerseText(verse)}</span>
                 <button class="opacity-0 group-hover:opacity-100 ml-2 text-indigo-600 hover:text-indigo-800 text-xs font-medium transition-opacity" onclick="event.stopPropagation(); app.insertVerseIntoNotes('${verse.book_name} ${verse.chapter}:${verse.verse}')">
                     <i data-lucide="plus-circle" class="w-4 h-4 inline"></i> Add to notes
                 </button>
