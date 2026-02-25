@@ -1,4 +1,4 @@
-A// Bible Data and API Integration
+// Bible Data and API Integration
 const bibleData = {
   books: [
     // Old Testament
@@ -96,21 +96,107 @@ const bibleData = {
   ],
 
   translations: {
-    kjv: { name: "King James Version", testament: "both" },
-    asv: { name: "American Standard Version", testament: "both" },
-    web: { name: "World English Bible", testament: "both" },
-    ylt: { name: "Young's Literal Translation", testament: "both" },
-    heb: { name: "Hebrew Bible", testament: "old" },
-    grc: { name: "Greek New Testament (SBLGNT)", testament: "new" },
+    kjv: { name: "King James Version", testament: "both", api: "bible-api" },
+    asv: {
+      name: "American Standard Version",
+      testament: "both",
+      api: "bible-api",
+    },
+    web: { name: "World English Bible", testament: "both", api: "bible-api" },
+    ylt: {
+      name: "Young's Literal Translation",
+      testament: "both",
+      api: "bible-api",
+    },
+    heb: {
+      name: "Hebrew Bible (Leningrad Codex)",
+      testament: "old",
+      api: "api-bible",
+      bibleId: "0b262f1ed7f084a6-01",
+    },
+    grc: {
+      name: "Greek New Testament (Textus Receptus)",
+      testament: "new",
+      api: "api-bible",
+      bibleId: "3aefb10641485092-01",
+    },
+  },
+
+  // API.Bible book abbreviation mapping
+  apiBibleBookMap: {
+    Genesis: "GEN",
+    Exodus: "EXO",
+    Leviticus: "LEV",
+    Numbers: "NUM",
+    Deuteronomy: "DEU",
+    Joshua: "JOS",
+    Judges: "JDG",
+    Ruth: "RUT",
+    "1 Samuel": "1SA",
+    "2 Samuel": "2SA",
+    "1 Kings": "1KI",
+    "2 Kings": "2KI",
+    "1 Chronicles": "1CH",
+    "2 Chronicles": "2CH",
+    Ezra: "EZR",
+    Nehemiah: "NEH",
+    Esther: "EST",
+    Job: "JOB",
+    Psalms: "PSA",
+    Proverbs: "PRO",
+    Ecclesiastes: "ECC",
+    "Song of Solomon": "SNG",
+    Isaiah: "ISA",
+    Jeremiah: "JER",
+    Lamentations: "LAM",
+    Ezekiel: "EZK",
+    Daniel: "DAN",
+    Hosea: "HOS",
+    Joel: "JOL",
+    Amos: "AMO",
+    Obadiah: "OBA",
+    Jonah: "JON",
+    Micah: "MIC",
+    Nahum: "NAM",
+    Habakkuk: "HAB",
+    Zephaniah: "ZEP",
+    Haggai: "HAG",
+    Zechariah: "ZEC",
+    Malachi: "MAL",
+    Matthew: "MAT",
+    Mark: "MRK",
+    Luke: "LUK",
+    John: "JHN",
+    Acts: "ACT",
+    Romans: "ROM",
+    "1 Corinthians": "1CO",
+    "2 Corinthians": "2CO",
+    Galatians: "GAL",
+    Ephesians: "EPH",
+    Philippians: "PHP",
+    Colossians: "COL",
+    "1 Thessalonians": "1TH",
+    "2 Thessalonians": "2TH",
+    "1 Timothy": "1TI",
+    "2 Timothy": "2TI",
+    Titus: "TIT",
+    Philemon: "PHM",
+    Hebrews: "HEB",
+    James: "JAS",
+    "1 Peter": "1PE",
+    "2 Peter": "2PE",
+    "1 John": "1JN",
+    "2 John": "2JN",
+    "3 John": "3JN",
+    Jude: "JUD",
+    Revelation: "REV",
   },
 
   // Build regex pattern for verse detection
   getVersePattern() {
     const bookNames = this.books.flatMap((b) => [b.name, ...b.abbr]);
-    // Sort by length descending to match longer names first
     bookNames.sort((a, b) => b.length - a.length);
     const bookPattern = bookNames.join("|");
-    // Matches: Book Name/Abbr followed by chapter:verse(s)
     return new RegExp(
       `\\b(${bookPattern})\\s+(\\d+):(\\d+)(?:\\s*[-–,]\\s*(\\d+))?`,
       "gi",
@@ -119,14 +205,12 @@ const bibleData = {
 
   normalizeReference(match) {
     const [_, book, chapter, verse, endVerse] = match;
-    // Find canonical book name
     const bookData = this.books.find(
       (b) =>
         b.name.toLowerCase() === book.toLowerCase() ||
         b.abbr.some((a) => a.toLowerCase() === book.toLowerCase()),
     );
     if (!bookData) return null;
-
     return {
       book: bookData.name,
       chapter: parseInt(chapter),
@@ -138,12 +222,10 @@ const bibleData = {
 
   async fetchVerses(reference, translation = "kjv") {
     try {
-      // Handle ranges by fetching the chapter and filtering
       const url = `https://bible-api.com/${encodeURIComponent(reference)}?translation=${translation}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch verse");
-      const data = await response.json();
-      return data;
+      return await response.json();
     } catch (error) {
       console.error("Error fetching verse:", error);
       return null;
@@ -151,35 +233,83 @@ const bibleData = {
   },
 
   async fetchChapter(book, chapter, translation = "kjv") {
+    const trans = this.translations[translation];
+    if (!trans) {
+      console.error("Unknown translation:", translation);
+      return null;
+    }
+
+    // Use API.Bible for Hebrew and Greek
+    if (trans.api === "api-bible") {
+      return await this.fetchFromApiBible(book, chapter, trans.bibleId);
+    }
+
+    // Default to bible-api.com
     try {
       const url = `https://bible-api.com/${encodeURIComponent(book)}+${chapter}?translation=${translation}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error("Failed to fetch chapter");
-      const data = await response.json();
-      return data;
+      return await response.json();
     } catch (error) {
       console.error("Error fetching chapter:", error);
       return null;
     }
   },
 
+  // Fetch from API.Bible
+  async fetchFromApiBible(book, chapter, bibleId) {
+    try {
+      const bookAbbr = this.apiBibleBookMap[book];
+      if (!bookAbbr) {
+        console.error("Book not found:", book);
+        return null;
+      }
+
+      const url = `https://api.scripture.api.bible/v1/bibles/${bibleId}/chapters/${bookAbbr}.${chapter}`;
+      const response = await fetch(url, {
+        headers: { "api-key": "2e785260e26f44c3a6932274a79f1596" },
+      });
+
+      if (!response.ok) {
+        throw new Error(`API.Bible error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return this.convertApiBibleResponse(data.data, book, chapter);
+    } catch (error) {
+      console.error("Error fetching from API.Bible:", error);
+      return null;
+    }
+  },
+
+  // Convert API.Bible response to local format
+  convertApiBibleResponse(data, book, chapter) {
+    const verses = [];
+    if (data.verses) {
+      data.verses.forEach((v) => {
+        verses.push({
+          book_name: book,
+          chapter: chapter,
+          verse: parseInt(v.verseId),
+          text: v.text,
+        });
+      });
+    }
+    return { book_name: book, chapter: chapter, verses: verses };
+  },
+
   // Get books available for a specific translation
   getBooksForTranslation(translation) {
     const trans = this.translations[translation];
-    if (!trans || trans.testament === "both") {
-      return this.books;
-    }
-
+    if (!trans || trans.testament === "both") return this.books;
     const oldTestamentCount = 39;
-    if (trans.testament === "old") {
+    if (trans.testament === "old")
       return this.books.slice(0, oldTestamentCount);
-    } else if (trans.testament === "new") {
-      return this.books.slice(oldTestamentCount);
-    }
+    if (trans.testament === "new") return this.books.slice(oldTestamentCount);
     return this.books;
   },
 
-  // Check if a book is available in the current translation
+  // Check if a book is available
   isBookAvailable(bookName, translation) {
     const books = this.getBooksForTranslation(translation);
     return books.some((b) => b.name === bookName);
