@@ -215,12 +215,19 @@ class BibleStudyApp {
     // Approximation: highlight quoted speech, which typically maps to Christ's words in red-letter passages.
     return safeText.replace(
       /"([^"]+)"/g,
-      '<span class="words-of-christ">"$1"</span>',
+      '<span class="text-red-600">"$1"</span>',
     );
   }
 
   shouldUseRedLetter(bookName) {
-    const redLetterBooks = new Set(["Matthew", "Mark", "Luke", "John"]);
+    const redLetterBooks = new Set([
+      "Matthew",
+      "Mark",
+      "Luke",
+      "John",
+      "Acts",
+      "Revelation",
+    ]);
     return redLetterBooks.has(bookName);
   }
 
