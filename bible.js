@@ -100,6 +100,8 @@ const bibleData = {
     asv: "American Standard Version",
     web: "World English Bible",
     ylt: "Young's Literal Translation",
+    heb: "Hebrew Bible",
+    grc: "Greek New Testament (SBLGNT)",
   },
 
   // Build regex pattern for verse detection
