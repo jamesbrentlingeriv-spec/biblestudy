@@ -6,6 +6,8 @@ class BibleStudyApp {
     this.currentTranslation = "kjv";
     this.notesManager = null;
     this.audioRecorder = null;
+    this.highlights =
+      JSON.parse(localStorage.getItem("bibleStudyHighlights")) || {};
 
     // Set global reference early because other classes reference `app` during init.
     app = this;
@@ -186,24 +188,31 @@ class BibleStudyApp {
       return;
     }
 
-    const isHebrew = this.currentTranslation === "heb";
-    const textClass = isHebrew
-      ? "text-slate-800 text-xl font-serif"
-      : "text-slate-800";
-    const dirAttr = isHebrew ? 'dir="rtl" lang="he"' : "";
+    const textClass = "text-slate-800";
 
     content.innerHTML = data.verses
-      .map(
-        (verse) => `
-            <div class="bible-verse group" data-reference="${verse.book_name} ${verse.chapter}:${verse.verse}" onclick="app.selectVerse(this)">
+      .map((verse) => {
+        const ref = `${verse.book_name} ${verse.chapter}:${verse.verse}`;
+        const highlightClass = this.highlights[ref] || "";
+        return `
+            <div class="bible-verse group ${highlightClass} transition-colors duration-300" data-reference="${ref}" onclick="app.selectVerse(this)">
                 <span class="verse-number">${verse.verse}</span>
-                <span class="${textClass}" ${dirAttr}>${this.formatVerseText(verse)}</span>
-                <button class="opacity-0 group-hover:opacity-100 ml-2 text-indigo-600 hover:text-indigo-800 text-xs font-medium transition-opacity" onclick="event.stopPropagation(); app.insertVerseIntoNotes('${verse.book_name} ${verse.chapter}:${verse.verse}')">
-                    <i data-lucide="plus-circle" class="w-4 h-4 inline"></i> Add to notes
-                </button>
+                <span class="${textClass}">${this.formatVerseText(verse)}</span>
+                
+                <div class="opacity-0 group-hover:opacity-100 ml-4 inline-flex items-center gap-2 transition-opacity bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm border border-slate-100">
+                    <button class="w-3 h-3 rounded-full bg-yellow-300 hover:scale-125 transition-transform ring-1 ring-yellow-400" onclick="event.stopPropagation(); app.setHighlight('${ref}', 'bg-yellow-100')" title="Yellow"></button>
+                    <button class="w-3 h-3 rounded-full bg-green-300 hover:scale-125 transition-transform ring-1 ring-green-400" onclick="event.stopPropagation(); app.setHighlight('${ref}', 'bg-green-100')" title="Green"></button>
+                    <button class="w-3 h-3 rounded-full bg-blue-300 hover:scale-125 transition-transform ring-1 ring-blue-400" onclick="event.stopPropagation(); app.setHighlight('${ref}', 'bg-blue-100')" title="Blue"></button>
+                    <button class="w-3 h-3 rounded-full bg-pink-300 hover:scale-125 transition-transform ring-1 ring-pink-400" onclick="event.stopPropagation(); app.setHighlight('${ref}', 'bg-pink-100')" title="Pink"></button>
+                    <button class="text-slate-400 hover:text-red-500 transition-colors" onclick="event.stopPropagation(); app.setHighlight('${ref}', null)" title="Remove highlight"><i data-lucide="x" class="w-3 h-3"></i></button>
+                    <div class="w-px h-3 bg-slate-300 mx-1"></div>
+                    <button class="text-indigo-600 hover:text-indigo-800 text-xs font-medium flex items-center gap-1" onclick="event.stopPropagation(); app.insertVerseIntoNotes('${ref}')">
+                        <i data-lucide="plus-circle" class="w-3 h-3"></i> Note
+                    </button>
+                </div>
             </div>
-        `,
-      )
+        `;
+      })
       .join("");
 
     lucide.createIcons();
@@ -244,6 +253,34 @@ class BibleStudyApp {
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
+  }
+
+  setHighlight(reference, colorClass) {
+    if (colorClass) {
+      this.highlights[reference] = colorClass;
+    } else {
+      delete this.highlights[reference];
+    }
+
+    localStorage.setItem(
+      "bibleStudyHighlights",
+      JSON.stringify(this.highlights),
+    );
+
+    const verseEl = document.querySelector(
+      `.bible-verse[data-reference="${reference}"]`,
+    );
+    if (verseEl) {
+      verseEl.classList.remove(
+        "bg-yellow-100",
+        "bg-green-100",
+        "bg-blue-100",
+        "bg-pink-100",
+      );
+      if (colorClass) {
+        verseEl.classList.add(colorClass);
+      }
+    }
   }
 
   selectVerse(element) {

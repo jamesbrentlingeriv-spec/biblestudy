@@ -108,18 +108,6 @@ const bibleData = {
       testament: "both",
       api: "bible-api",
     },
-    heb: {
-      name: "Hebrew Bible (Leningrad Codex)",
-      testament: "old",
-      api: "api-bible",
-      bibleId: "0b262f1ed7f084a6-01",
-    },
-    grc: {
-      name: "Greek New Testament (Patriarchal 1904)",
-      testament: "new",
-      api: "api-bible",
-      bibleId: "901dcd9744e1bf69-01",
-    },
   },
 
   // API.Bible book abbreviation mapping
