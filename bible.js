@@ -115,10 +115,10 @@ const bibleData = {
       bibleId: "0b262f1ed7f084a6-01",
     },
     grc: {
-      name: "Greek New Testament (Textus Receptus)",
+      name: "Greek New Testament (Patriarchal 1904)",
       testament: "new",
       api: "api-bible",
-      bibleId: "3aefb10641485092-01",
+      bibleId: "901dcd9744e1bf69-01",
     },
   },
 
@@ -284,17 +284,53 @@ const bibleData = {
 
   // Convert API.Bible response to local format
   convertApiBibleResponse(data, book, chapter) {
-    const verses = [];
-    if (data.verses) {
-      data.verses.forEach((v) => {
-        verses.push({
-          book_name: book,
-          chapter: chapter,
-          verse: parseInt(v.verseId),
-          text: v.text,
-        });
-      });
+    if (!data || !data.content) {
+      return { book_name: book, chapter: chapter, verses: [] };
     }
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(data.content, "text/html");
+    const versesMap = new Map();
+
+    // Find all elements with data-verse-id
+    const verseElements = doc.querySelectorAll("[data-verse-id]");
+
+    verseElements.forEach((el) => {
+      const verseId = el.getAttribute("data-verse-id"); // e.g. "GEN.1.1"
+      const parts = verseId.split(".");
+      if (parts.length < 3) return;
+
+      const verseNum = parseInt(parts[2], 10);
+      if (isNaN(verseNum)) return;
+
+      // Clone to safely remove verse numbers
+      const clone = el.cloneNode(true);
+      const numbers = clone.querySelectorAll(".v, .label, .chapter-number");
+      numbers.forEach((n) => n.remove());
+
+      let text = clone.textContent
+        .replace(/[\n\r\t]/g, " ")
+        .replace(/\s+/g, " ");
+
+      if (versesMap.has(verseNum)) {
+        versesMap.set(verseNum, versesMap.get(verseNum) + text);
+      } else {
+        versesMap.set(verseNum, text);
+      }
+    });
+
+    const verses = [];
+    const sortedVerses = Array.from(versesMap.keys()).sort((a, b) => a - b);
+
+    sortedVerses.forEach((vNum) => {
+      verses.push({
+        book_name: book,
+        chapter: chapter,
+        verse: vNum,
+        text: versesMap.get(vNum).trim(),
+      });
+    });
+
     return { book_name: book, chapter: chapter, verses: verses };
   },
 
