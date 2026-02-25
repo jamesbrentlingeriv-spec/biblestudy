@@ -328,11 +328,18 @@ class BibleStudyApp {
         if (!('serviceWorker' in navigator)) return;
         if (window.location.protocol === 'file:') return;
 
-        window.addEventListener('load', () => {
+        const register = () => {
             navigator.serviceWorker.register('./sw.js').catch((error) => {
                 console.error('Service worker registration failed:', error);
             });
-        });
+        };
+
+        if (document.readyState === 'complete') {
+            register();
+            return;
+        }
+
+        window.addEventListener('load', register, { once: true });
     }
 }
 

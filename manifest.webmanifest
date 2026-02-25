@@ -1,6 +1,6 @@
 ﻿{
-  "name": "Scripture Study Suite",
-  "short_name": "Study Suite",
+  "name": "Bible Study Suite",
+  "short_name": "Bible Study",
   "description": "Bible reading, notes, songs, and audio recordings in one study workspace.",
   "start_url": "./",
   "scope": "./",

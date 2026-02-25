@@ -374,7 +374,7 @@ class NotesManager {
 
       // Prepare data
       const data = {
-        app: "Scripture Study Suite",
+        app: "Bible Study Suite",
         version: "1.0",
         lastModified: new Date().toISOString(),
         notes: this.notes,
@@ -394,7 +394,7 @@ class NotesManager {
   exportToFile() {
     // Fallback: Create downloadable JSON file
     const data = {
-      app: "Scripture Study Suite",
+      app: "Bible Study Suite",
       version: "1.0",
       exported: new Date().toISOString(),
       notes: this.notes,

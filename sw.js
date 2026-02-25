@@ -1,4 +1,4 @@
-﻿const CACHE_NAME = "scripture-study-suite-v1";
+const CACHE_NAME = "bible-study-suite-v2";
 const APP_SHELL = [
   "./",
   "./index.html",

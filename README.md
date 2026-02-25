@@ -1,5 +1,5 @@
 ﻿<p align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:1d4ed8,100:0f172a&height=220&section=header&text=Scripture%20Study%20Suite&fontSize=44&fontColor=ffffff&animation=fadeIn&fontAlignY=38" alt="Scripture Study Suite banner" />
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:1d4ed8,100:0f172a&height=220&section=header&text=Bible%20Study%20Suite&fontSize=44&fontColor=ffffff&animation=fadeIn&fontAlignY=38" alt="Bible Study Suite banner" />
 </p>
 
 <p align="center">
@@ -11,13 +11,13 @@
 </p>
 
 <p align="center">
-  Scripture Study Suite is a browser-based Bible study app with Bible reading, note-taking, verse context, per-note audio, and per-note songs/lyrics.
+  Bible Study Suite is a browser-based Bible study app with Bible reading, note-taking, verse context, per-note audio, and per-note songs/lyrics.
 </p>
 
 ---
 
 <p align="center">
-  <img src="./logo.png" alt="Scripture Study Suite logo" width="220" />
+  <img src="./logo.png" alt="Bible Study Suite logo" width="220" />
 </p>
 
 ## Quick Navigation
@@ -191,7 +191,7 @@ icons/apple-touch-icon.png
 
 ### Updating The Service Worker Cache
 
-When you change core files, update `CACHE_NAME` in `sw.js` (for example `scripture-study-suite-v2`) so clients receive a fresh cache.
+When you change core files, update `CACHE_NAME` in `sw.js` (for example `bible-study-suite-v3`) so clients receive a fresh cache.
 
 ## Deploying to GitHub Pages
 
