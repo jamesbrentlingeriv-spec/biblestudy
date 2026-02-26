@@ -51,12 +51,12 @@
                         <span class="hidden sm:inline">Install App</span>
                     </button>
 
-                    <a href="https://jamesbrentlingeriv-spec.github.io/ancientbiblereader/" target="_blank" rel="noopener noreferrer"
+                    <button id="showAncientReaderBtn"
                         class="px-3 py-1.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 flex items-center gap-2 transition-colors"
                         title="Read the Hebrew and Greek texts in parallel">
                         <i data-lucide="scroll-text" class="w-5 h-5"></i>
                         <span class="hidden sm:inline">Read Ancient Texts</span>
-                    </a>
+                    </button>
 
                     <button id="newNoteBtn"
                         class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
@@ -253,6 +253,18 @@ Tip: Type verse references like 'John 3:16' or 'Genesis 1:1-3' and they will app
             class="fixed bottom-4 right-4 bg-slate-800 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-20 transition-transform duration-300 z-50 flex items-center gap-2">
             <i data-lucide="check-circle" class="w-5 h-5 text-green-400"></i>
             <span id="toastMessage">Notification</span>
+        </div>
+
+        <!-- Ancient Bible Reader View -->
+        <div id="ancientReaderView" class="hidden fixed inset-0 z-[100] bg-white flex flex-col">
+            <header class="bg-slate-800 text-white p-2 flex justify-between items-center flex-none shadow-lg">
+                <h2 class="text-lg font-bold ml-2">Ancient Texts Parallel Bible</h2>
+                <button id="closeAncientReaderBtn" class="p-2 rounded-lg hover:bg-slate-700 transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                    <span class="sr-only">Close Ancient Reader</span>
+                </button>
+            </header>
+            <iframe src="../ancientbiblereader/index.html" class="w-full h-full border-none" title="Ancient Bible Reader"></iframe>
         </div>
     </div>
 

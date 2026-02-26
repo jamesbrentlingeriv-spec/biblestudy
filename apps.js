@@ -97,6 +97,9 @@ class BibleStudyApp {
     const searchInput = document.getElementById("searchInput");
     const bibleContent = document.getElementById("bibleContent");
     const installBtn = document.getElementById("installPWAButton");
+    const showAncientReaderBtn = document.getElementById('showAncientReaderBtn');
+    const closeAncientReaderBtn = document.getElementById('closeAncientReaderBtn');
+    const ancientReaderView = document.getElementById('ancientReaderView');
 
     if (bookSelect) {
       bookSelect.addEventListener("change", () => {
@@ -151,6 +154,18 @@ class BibleStudyApp {
 
     if (installBtn) {
       installBtn.addEventListener("click", () => this.installApp());
+    }
+
+    if (showAncientReaderBtn) {
+        showAncientReaderBtn.addEventListener('click', () => {
+            if(ancientReaderView) ancientReaderView.classList.remove('hidden');
+        });
+    }
+
+    if (closeAncientReaderBtn) {
+        closeAncientReaderBtn.addEventListener('click', () => {
+            if(ancientReaderView) ancientReaderView.classList.add('hidden');
+        });
     }
 
     // PWA Install Prompt Listener
