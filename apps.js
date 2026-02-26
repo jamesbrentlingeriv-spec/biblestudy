@@ -7,6 +7,7 @@ class BibleStudyApp {
     this.notesManager = null;
     this.audioRecorder = null;
     this.highlights =
+    this.installPrompt = null; // For PWA installation prompt
       JSON.parse(localStorage.getItem("bibleStudyHighlights")) || {};
 
     // Set global reference early because other classes reference `app` during init.
@@ -146,6 +147,16 @@ class BibleStudyApp {
         }
       });
     }
+
+    // PWA Install Prompt Listener
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault(); // Prevent the mini-infobar from appearing on mobile
+      this.installPrompt = e;
+      const installBtn = document.getElementById("installPWAButton");
+      if (installBtn) {
+        installBtn.classList.remove("hidden"); // Show the install button
+      }
+    });
   }
 
   async loadInitialChapter() {
@@ -430,6 +441,26 @@ class BibleStudyApp {
     }
 
     window.addEventListener("load", register, { once: true });
+  }
+
+  // PWA Installation Method
+  async installApp() {
+    if (!this.installPrompt) {
+      this.notesManager.showToast("App cannot be installed at this time.");
+      return;
+    }
+    const installBtn = document.getElementById("installPWAButton");
+    if (installBtn) {
+      installBtn.classList.add("hidden"); // Hide the button once prompt is shown
+    }
+    this.installPrompt.prompt(); // Show the install prompt
+    const { outcome } = await this.installPrompt.userChoice;
+    if (outcome === "accepted") {
+      this.notesManager.showToast("Bible Study Suite installed!");
+    } else {
+      this.notesManager.showToast("Installation cancelled.");
+    }
+    this.installPrompt = null; // Clear the prompt event
   }
 }
 
