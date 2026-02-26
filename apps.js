@@ -96,6 +96,7 @@ class BibleStudyApp {
     const mobileMenuBtn = document.getElementById("mobileMenuBtn");
     const searchInput = document.getElementById("searchInput");
     const bibleContent = document.getElementById("bibleContent");
+    const installBtn = document.getElementById("installPWAButton");
 
     if (bookSelect) {
       bookSelect.addEventListener("change", () => {
@@ -146,6 +147,10 @@ class BibleStudyApp {
           this.insertVerseIntoNotes(verse.dataset.reference);
         }
       });
+    }
+
+    if (installBtn) {
+      installBtn.addEventListener("click", () => this.installApp());
     }
 
     // PWA Install Prompt Listener
