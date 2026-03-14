@@ -10,11 +10,10 @@
     <meta name="apple-mobile-web-app-title" content="Bible Study">
     <title>Bible Study Suite</title>
     <link rel="manifest" href="manifest.webmanifest">
-    <link rel="icon" href="icons/favicon.ico">
-    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="icon" href="icons/favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" sizes="180x180">
     <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
-    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link
@@ -46,7 +45,8 @@
                         <option value="ylt">Young's Literal Translation</option>
                     </select>
 
-                    <button id="installPWAButton" class="hidden px-3 py-1.5 rounded-lg text-sm font-medium text-indigo-600 hover:bg-indigo-50 flex items-center gap-2 transition-colors"
+                    <button id="installPWAButton"
+                        class="hidden px-3 py-1.5 rounded-lg text-sm font-medium text-indigo-600 hover:bg-indigo-50 flex items-center gap-2 transition-colors"
                         title="Install Bible Study Suite to your device">
                         <i data-lucide="download" class="w-5 h-5"></i>
                         <span class="hidden sm:inline">Install App</span>
@@ -265,7 +265,8 @@ Tip: Type verse references like 'John 3:16' or 'Genesis 1:1-3' and they will app
                     <span class="sr-only">Close Ancient Reader</span>
                 </button>
             </header>
-            <iframe src="../ancientbiblereader/index.html" class="w-full h-full border-none" title="Ancient Bible Reader"></iframe>
+            <iframe src="../ancientbiblereader/index.html" class="w-full h-full border-none"
+                title="Ancient Bible Reader"></iframe>
         </div>
     </div>
 
