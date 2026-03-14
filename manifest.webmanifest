@@ -1,11 +1,9 @@
 ﻿{
   "name": "Bible Study Suite",
-  "short_name": "Bible Study",
-  "description": "Bible reading, notes, songs, and audio recordings in one study workspace.",
-  "start_url": "./",
-  "scope": "./",
+  "short_name": "BibleStudy",
+  "description": "A browser-based Bible study app with Bible reading, note-taking, verse context, and audio recording.",
+  "start_url": "./index.html",
   "display": "standalone",
-  "orientation": "portrait-primary",
   "background_color": "#f8fafc",
   "theme_color": "#1d4ed8",
   "icons": [
