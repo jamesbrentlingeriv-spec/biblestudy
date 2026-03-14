@@ -1,12 +1,14 @@
-# Bible Study Favicon Reference Task
+# PWA Icon Fix TODO
 
-## Plan Steps
+## Plan Summary
 
-- [ ] Step 1: Edit index.html to add <link rel="icon" href="icons/favicon.ico">
-      as primary favicon reference.
-- [ ] Step 2: Verify change with browser test (open index.html or serve
-      locally).
-- [ ] Step 3: Mark complete and cleanup TODO.md.
+Fix generic PWA install icon by enhancing manifest.webmanifest with more
+sizes/purposes, minor sw.js update, cache clear.
 
-**Status**: ✅ Complete! Favicon referenced in index.html. Open index.html in
-browser to verify (clear cache: Ctrl+Shift+R).
+## Steps
+
+- [x] Step 1: Edit manifest.webmanifest (add 144x144, 256x256 icons; split
+      maskable/any purposes)
+- [x] Step 2: Edit sw.js (add favicon.ico to cache)
+- [ ] Step 3: Provide cache-clearing/testing instructions
+- [ ] Step 4: Run Lighthouse PWA audit & confirm install icon
