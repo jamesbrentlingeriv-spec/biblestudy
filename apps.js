@@ -200,11 +200,7 @@ class BibleStudyApp {
       this.currentTranslation,
     );
 
-    if (!data) {
-      content.innerHTML =
-        '<div class="text-center text-red-500 p-4">Failed to load chapter. Please try again.</div>';
-      return;
-    }
+    console.log("Bible data:", data); // DEBUG
 
     this.renderChapter(data);
     const refEl = document.getElementById("currentReference");
