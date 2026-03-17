@@ -1,47 +1,533 @@
-// apps.js
+// Main Application Controller
 class BibleStudyApp {
-  // ... other methods ...
+  constructor() {
+    this.currentBook = "John";
+    this.currentChapter = 3;
+    this.currentTranslation = "kjv";
+    this.notesManager = null;
+    this.audioRecorder = null;
+    this.highlights =
+      JSON.parse(localStorage.getItem("bibleStudyHighlights")) || {};
+    this.installPrompt = null; // For PWA installation prompt
 
-  renderChapter(chapterData) {
-    // Assuming chapterData is an array, and each item might be null or an object.
-    // Or, chapterData itself might be null.
-    // The error points to line 227, inside a map function or similar.
+    // Set global reference early because other classes reference `app` during init.
+    app = this;
+    window.app = this;
 
-    if (!chapterData) {
-      console.error("renderChapter received null or undefined chapterData.");
-      return; // Or handle this case appropriately
+    this.init();
+  }
+
+  init() {
+    this.notesManager = new NotesManager();
+    this.audioRecorder = new AudioRecorder();
+
+    this.populateBookSelect();
+    this.setupEventListeners();
+    this.loadInitialChapter();
+
+    lucide.createIcons();
+    this.registerServiceWorker();
+  }
+
+  populateBookSelect() {
+    const select = document.getElementById("bookSelect");
+    if (!select || !bibleData.books) {
+      console.error("Book select element or bibleData not found");
+      return;
     }
 
-    const renderedContent = chapterData
-      .map((item) => {
-        // Line 227 is likely within this map callback or similar iteration.
-        // Let's assume 'item' is where the error occurs if it's null.
-        if (item === null) {
-          console.warn("Skipping null item in chapter data.", item);
-          return ""; // Or handle null items gracefully
+    // Get books available for the current translation
+    const availableBooks = bibleData.getBooksForTranslation(
+      this.currentTranslation,
+    );
+
+    // Check if current book is available in this translation
+    const currentBookAvailable = availableBooks.some(
+      (b) => b.name === this.currentBook,
+    );
+
+    // If current book is not available, switch to the first available book
+    if (!currentBookAvailable && availableBooks.length > 0) {
+      this.currentBook = availableBooks[0].name;
+      this.currentChapter = 1;
+    }
+
+    select.innerHTML = "";
+    availableBooks.forEach((book) => {
+      const option = document.createElement("option");
+      option.value = book.name;
+      option.textContent = book.name;
+      if (book.name === this.currentBook) option.selected = true;
+      select.appendChild(option);
+    });
+
+    this.updateChapterSelect();
+  }
+
+  updateChapterSelect() {
+    const bookSelect = document.getElementById("bookSelect");
+    const chapterSelect = document.getElementById("chapterSelect");
+
+    if (!bookSelect || !chapterSelect) return;
+
+    const book = bibleData.books.find((b) => b.name === bookSelect.value);
+
+    if (!book) {
+      console.error("Book not found:", bookSelect.value);
+      return;
+    }
+
+    chapterSelect.innerHTML = "";
+    for (let i = 1; i <= book.chapters; i++) {
+      const option = document.createElement("option");
+      option.value = i;
+      option.textContent = i;
+      if (i === this.currentChapter) option.selected = true;
+      chapterSelect.appendChild(option);
+    }
+  }
+
+  setupEventListeners() {
+    const bookSelect = document.getElementById("bookSelect");
+    const chapterSelect = document.getElementById("chapterSelect");
+    const prevChapter = document.getElementById("prevChapter");
+    const nextChapter = document.getElementById("nextChapter");
+    const translationSelect = document.getElementById("translationSelect");
+    const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+    const searchInput = document.getElementById("searchInput");
+    const bibleContent = document.getElementById("bibleContent");
+    const installBtn = document.getElementById("installPWAButton");
+    const showAncientReaderBtn = document.getElementById(
+      "showAncientReaderBtn",
+    );
+    const closeAncientReaderBtn = document.getElementById(
+      "closeAncientReaderBtn",
+    );
+    const ancientReaderView = document.getElementById("ancientReaderView");
+
+    if (bookSelect) {
+      bookSelect.addEventListener("change", () => {
+        this.currentBook = bookSelect.value;
+        this.currentChapter = 1;
+        this.updateChapterSelect();
+        this.loadChapter();
+      });
+    }
+
+    if (chapterSelect) {
+      chapterSelect.addEventListener("change", () => {
+        this.currentChapter = parseInt(chapterSelect.value, 10);
+        this.loadChapter();
+      });
+    }
+
+    if (prevChapter)
+      prevChapter.addEventListener("click", () => this.navigateChapter(-1));
+    if (nextChapter)
+      nextChapter.addEventListener("click", () => this.navigateChapter(1));
+
+    if (translationSelect) {
+      translationSelect.addEventListener("change", (e) => {
+        this.currentTranslation = e.target.value;
+        this.notesManager.updateTranslation(this.currentTranslation);
+        this.populateBookSelect();
+        this.loadChapter();
+      });
+    }
+
+    if (mobileMenuBtn) {
+      mobileMenuBtn.addEventListener("click", () => this.toggleMobileMenu());
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          this.searchVerse(e.target.value);
         }
-        // If 'John 3:1' is a property you're trying to access directly on 'item',
-        // ensure 'item' is not null.
-        // Example: If item.data.verses is where 'John 3:1' is expected
-        if (
-          item &&
-          item.data &&
-          item.data.verses &&
-          item.data.verses["John 3:1"]
-        ) {
-          return `<p>${item.data.verses["John 3:1"]}</p>`; // Example usage
-        } else {
-          console.warn(
-            "Could not find 'John 3:1' in item or item structure is invalid.",
-            item,
-          );
-          return "";
+      });
+    }
+
+    if (bibleContent) {
+      bibleContent.addEventListener("click", (e) => {
+        const verse = e.target.closest(".bible-verse");
+        if (verse) {
+          this.insertVerseIntoNotes(verse.dataset.reference);
         }
+      });
+    }
+
+    if (installBtn) {
+      installBtn.addEventListener("click", () => this.installApp());
+    }
+
+    if (showAncientReaderBtn) {
+      showAncientReaderBtn.addEventListener("click", () => {
+        if (ancientReaderView) ancientReaderView.classList.remove("hidden");
+      });
+    }
+
+    if (closeAncientReaderBtn) {
+      closeAncientReaderBtn.addEventListener("click", () => {
+        if (ancientReaderView) ancientReaderView.classList.add("hidden");
+      });
+    }
+
+    // PWA Install Prompt Listener
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault(); // Prevent the mini-infobar from appearing on mobile
+      this.installPrompt = e;
+      const installBtn = document.getElementById("installPWAButton");
+      if (installBtn) {
+        installBtn.classList.remove("hidden"); // Show the install button
+      }
+    });
+  }
+
+  async loadInitialChapter() {
+    await this.loadChapter();
+  }
+
+  async loadChapter() {
+    const content = document.getElementById("bibleContent");
+    if (!content) return;
+
+    content.innerHTML =
+      '<div class="loading-shimmer w-3/4"></div><div class="loading-shimmer w-full"></div><div class="loading-shimmer w-5/6"></div>';
+
+    const data = await bibleData.fetchChapter(
+      this.currentBook,
+      this.currentChapter,
+      this.currentTranslation,
+    );
+
+    console.log("Bible data:", data); // DEBUG
+
+    this.renderChapter(data);
+    const refEl = document.getElementById("currentReference");
+    if (refEl) {
+      refEl.textContent = `${this.currentBook} ${this.currentChapter}`;
+    }
+  }
+
+  renderChapter(data) {
+    const content = document.getElementById("bibleContent");
+    if (!content) return;
+
+    // Handle fetch failure gracefully (file:// protocol, network issues)
+    if (!data || !data.verses || data.verses.length === 0) {
+      content.innerHTML = `
+        <div class="text-center text-red-500 p-8 space-y-4">
+          <i data-lucide="wifi-off" class="w-16 h-16 mx-auto opacity-75"></i>
+          <h3 class="text-lg font-semibold">Cannot Load Bible Text</h3>
+          <p class="text-sm">API blocked by file:// protocol or network error.</p>
+          <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs">
+            <strong>Quick Fix:</strong> Right-click index.html → <strong>Open with Live Server</strong><br>
+            Opens http://127.0.0.1:5500/ → Bible loads instantly
+          </div>
+          <details class="text-xs text-slate-600 mt-4">
+            <summary>Console Errors? (F12 → Console)</summary>
+            <pre class="mt-2 p-2 bg-slate-100 rounded text-xs overflow-auto max-h-32">Copy/paste errors here for further help</pre>
+          </details>
+        </div>
+      `;
+      lucide.createIcons();
+      return;
+    }
+
+    const textClass = "text-slate-800";
+
+    content.innerHTML = data.verses
+      .map((verse) => {
+        const ref = `${verse.book_name} ${verse.chapter}:${verse.verse}`;
+        const highlightClass = this.highlights[ref] || "";
+        return `
+            <div class="bible-verse group ${highlightClass} transition-colors duration-300" data-reference="${ref}" onclick="app.selectVerse(this)">
+                <span class="verse-number">${verse.verse}</span>
+                <span class="${textClass}">${this.formatVerseText(verse)}</span>
+                
+                <div class="opacity-0 group-hover:opacity-100 ml-4 inline-flex items-center gap-2 transition-opacity bg-white/80 backdrop-blur-sm px-2 py-1 rounded-full shadow-sm border border-slate-100">
+                    <button class="w-3 h-3 rounded-full bg-yellow-300 hover:scale-125 transition-transform ring-1 ring-yellow-400" onclick="event.stopPropagation(); app.setHighlight('${ref}', 'bg-yellow-100')" title="Yellow"></button>
+                    <button class="w-3 h-3 rounded-full bg-green-300 hover:scale-125 transition-transform ring-1 ring-green-400" onclick="event.stopPropagation(); app.setHighlight('${ref}', 'bg-green-100')" title="Green"></button>
+                    <button class="w-3 h-3 rounded-full bg-blue-300 hover:scale-125 transition-transform ring-1 ring-blue-400" onclick="event.stopPropagation(); app.setHighlight('${ref}', 'bg-blue-100')" title="Blue"></button>
+                    <button class="w-3 h-3 rounded-full bg-pink-300 hover:scale-125 transition-transform ring-1 ring-pink-400" onclick="event.stopPropagation(); app.setHighlight('${ref}', 'bg-pink-100')" title="Pink"></button>
+                    <button class="text-slate-400 hover:text-red-500 transition-colors" onclick="event.stopPropagation(); app.setHighlight('${ref}', null)" title="Remove highlight"><i data-lucide="x" class="w-3 h-3"></i></button>
+                    <div class="w-px h-3 bg-slate-300 mx-1"></div>
+                    <button class="text-indigo-600 hover:text-indigo-800 text-xs font-medium flex items-center gap-1" onclick="event.stopPropagation(); app.insertVerseIntoNotes('${ref}')">
+                        <i data-lucide="plus-circle" class="w-3 h-3"></i> Note
+                    </button>
+                </div>
+            </div>
+        `;
       })
       .join("");
 
-    // ... rest of the method ...
+    lucide.createIcons();
+    content.scrollTop = 0;
   }
 
-  // ... other methods ...
+  formatVerseText(verse) {
+    const rawText = verse?.text || "";
+    const safeText = this.escapeHtml(rawText);
+
+    if (!this.shouldUseRedLetter(verse?.book_name || this.currentBook)) {
+      return safeText;
+    }
+
+    // Approximation: highlight quoted speech, which typically maps to Christ's words in red-letter passages.
+    return safeText.replace(
+      /"([^"]+)"/g,
+      '<span class="text-red-600">"$1"</span>',
+    );
+  }
+
+  shouldUseRedLetter(bookName) {
+    const redLetterBooks = new Set([
+      "Matthew",
+      "Mark",
+      "Luke",
+      "John",
+      "Acts",
+      "Revelation",
+    ]);
+    return redLetterBooks.has(bookName);
+  }
+
+  escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  setHighlight(reference, colorClass) {
+    if (colorClass) {
+      this.highlights[reference] = colorClass;
+    } else {
+      delete this.highlights[reference];
+    }
+
+    localStorage.setItem(
+      "bibleStudyHighlights",
+      JSON.stringify(this.highlights),
+    );
+
+    const verseEl = document.querySelector(
+      `.bible-verse[data-reference="${reference}"]`,
+    );
+    if (verseEl) {
+      verseEl.classList.remove(
+        "bg-yellow-100",
+        "bg-green-100",
+        "bg-blue-100",
+        "bg-pink-100",
+      );
+      if (colorClass) {
+        verseEl.classList.add(colorClass);
+      }
+    }
+  }
+
+  selectVerse(element) {
+    element.classList.toggle("selected");
+  }
+
+  insertVerseIntoNotes(reference) {
+    const textarea = document.getElementById("noteContent");
+    if (!textarea) return;
+
+    const currentValue = textarea.value;
+    const cursorPosition = textarea.selectionStart;
+
+    const before = currentValue.substring(0, cursorPosition);
+    const after = currentValue.substring(cursorPosition);
+
+    const prefix =
+      before.length > 0 && !before.endsWith(" ") && !before.endsWith("\n")
+        ? " "
+        : "";
+    const suffix = after.length > 0 && !after.startsWith(" ") ? " " : "";
+
+    const newValue = before + prefix + reference + suffix + after;
+    textarea.value = newValue;
+    textarea.dispatchEvent(new Event("input"));
+    textarea.focus();
+  }
+
+  navigateChapter(direction) {
+    const currentBookIndex = bibleData.books.findIndex(
+      (b) => b.name === this.currentBook,
+    );
+    if (currentBookIndex < 0) return;
+
+    let nextBookIndex = currentBookIndex;
+    let nextChapter = this.currentChapter + direction;
+
+    if (nextChapter < 1) {
+      if (currentBookIndex === 0) return;
+      nextBookIndex = currentBookIndex - 1;
+      nextChapter = bibleData.books[nextBookIndex].chapters;
+    } else if (nextChapter > bibleData.books[currentBookIndex].chapters) {
+      if (currentBookIndex === bibleData.books.length - 1) return;
+      nextBookIndex = currentBookIndex + 1;
+      nextChapter = 1;
+    }
+
+    this.currentBook = bibleData.books[nextBookIndex].name;
+    this.currentChapter = nextChapter;
+
+    const bookSelect = document.getElementById("bookSelect");
+    const chapterSelect = document.getElementById("chapterSelect");
+    if (bookSelect) bookSelect.value = this.currentBook;
+    this.updateChapterSelect();
+    if (chapterSelect) chapterSelect.value = String(this.currentChapter);
+
+    this.loadChapter();
+  }
+
+  toggleMobileMenu() {
+    const biblePanel = document.getElementById("biblePanel");
+    const sidebar = document.getElementById("contextSidebar");
+    const overlay = document.getElementById("mobileOverlay");
+    if (!biblePanel || !sidebar || !overlay) return;
+
+    const isOpen =
+      biblePanel.classList.contains("panel-open-left") ||
+      sidebar.classList.contains("panel-open-right");
+    if (isOpen) {
+      this.closeMobilePanels();
+      return;
+    }
+
+    biblePanel.classList.add("panel-open-left");
+    sidebar.classList.remove("panel-open-right");
+    overlay.classList.remove("hidden");
+  }
+
+  closeMobilePanels() {
+    const biblePanel = document.getElementById("biblePanel");
+    const sidebar = document.getElementById("contextSidebar");
+    const overlay = document.getElementById("mobileOverlay");
+    if (!biblePanel || !sidebar || !overlay) return;
+
+    biblePanel.classList.remove("panel-open-left");
+    sidebar.classList.remove("panel-open-right");
+    overlay.classList.add("hidden");
+  }
+
+  async searchVerse(query) {
+    const text = (query || "").trim();
+    if (!text) return;
+
+    const match = [...text.matchAll(bibleData.getVersePattern())][0];
+    if (!match) {
+      this.notesManager.showToast("Enter a reference like John 3:16");
+      return;
+    }
+
+    const ref = bibleData.normalizeReference(match);
+    if (!ref) {
+      this.notesManager.showToast("Could not parse that verse reference");
+      return;
+    }
+
+    this.currentBook = ref.book;
+    this.currentChapter = ref.chapter;
+
+    const bookSelect = document.getElementById("bookSelect");
+    const chapterSelect = document.getElementById("chapterSelect");
+    if (bookSelect) bookSelect.value = this.currentBook;
+    this.updateChapterSelect();
+    if (chapterSelect) chapterSelect.value = String(this.currentChapter);
+
+    await this.loadChapter();
+
+    const selector = `.bible-verse[data-reference="${ref.book} ${ref.chapter}:${ref.verse}"]`;
+    const verseElement = document.querySelector(selector);
+    if (verseElement) {
+      verseElement.scrollIntoView({ behavior: "smooth", block: "center" });
+      verseElement.classList.add("selected");
+      setTimeout(() => verseElement.classList.remove("selected"), 1200);
+    }
+  }
+
+  scrollToVerse(reference) {
+    this.notesManager.scrollToVerseInNotes(reference);
+  }
+
+  scrollToVerseInNotes(reference) {
+    this.notesManager.scrollToVerseInNotes(reference);
+  }
+
+  registerServiceWorker() {
+    if (!("serviceWorker" in navigator)) return;
+    if (window.location.protocol === "file:") return;
+
+    const register = () => {
+      navigator.serviceWorker.register("./sw.js").catch((error) => {
+        console.error("Service worker registration failed:", error);
+      });
+    };
+
+    if (document.readyState === "complete") {
+      register();
+      return;
+    }
+
+    window.addEventListener("load", register, { once: true });
+  }
+
+  // PWA Installation Method
+  async installApp() {
+    if (!this.installPrompt) {
+      this.notesManager.showToast("App cannot be installed at this time.");
+      return;
+    }
+    const installBtn = document.getElementById("installPWAButton");
+    if (installBtn) {
+      installBtn.classList.add("hidden"); // Hide the button once prompt is shown
+    }
+    this.installPrompt.prompt(); // Show the install prompt
+    const { outcome } = await this.installPrompt.userChoice;
+    if (outcome === "accepted") {
+      this.notesManager.showToast("Bible Study Suite installed!");
+    } else {
+      this.notesManager.showToast("Installation cancelled.");
+    }
+    this.installPrompt = null; // Clear the prompt event
+  }
 }
+
+var app;
+document.addEventListener("DOMContentLoaded", () => {
+  const splash = document.getElementById("splashScreen");
+  const appRoot = document.getElementById("appRoot");
+
+  // Function to hide splash and initialize app
+  const initializeApp = () => {
+    try {
+      if (splash) {
+        splash.style.display = "none";
+        splash.classList.add("hidden");
+      }
+      if (appRoot) {
+        appRoot.classList.remove("hidden");
+      }
+      app = new BibleStudyApp();
+    } catch (error) {
+      console.error("Error initializing app:", error);
+      // Still hide splash even if there's an error
+      if (splash) {
+        splash.style.display = "none";
+        splash.classList.add("hidden");
+      }
+      if (appRoot) {
+        appRoot.classList.remove("hidden");
+      }
+    }
+  };
+
+  // Initialize after a short delay to allow GIF to play
+  setTimeout(initializeApp, 3000);
+});
