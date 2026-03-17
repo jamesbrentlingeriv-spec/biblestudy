@@ -7,8 +7,8 @@ class BibleStudyApp {
     this.notesManager = null;
     this.audioRecorder = null;
     this.highlights =
-    this.installPrompt = null; // For PWA installation prompt
       JSON.parse(localStorage.getItem("bibleStudyHighlights")) || {};
+    this.installPrompt = null; // For PWA installation prompt
 
     // Set global reference early because other classes reference `app` during init.
     app = this;
@@ -97,9 +97,13 @@ class BibleStudyApp {
     const searchInput = document.getElementById("searchInput");
     const bibleContent = document.getElementById("bibleContent");
     const installBtn = document.getElementById("installPWAButton");
-    const showAncientReaderBtn = document.getElementById('showAncientReaderBtn');
-    const closeAncientReaderBtn = document.getElementById('closeAncientReaderBtn');
-    const ancientReaderView = document.getElementById('ancientReaderView');
+    const showAncientReaderBtn = document.getElementById(
+      "showAncientReaderBtn",
+    );
+    const closeAncientReaderBtn = document.getElementById(
+      "closeAncientReaderBtn",
+    );
+    const ancientReaderView = document.getElementById("ancientReaderView");
 
     if (bookSelect) {
       bookSelect.addEventListener("change", () => {
@@ -157,15 +161,15 @@ class BibleStudyApp {
     }
 
     if (showAncientReaderBtn) {
-        showAncientReaderBtn.addEventListener('click', () => {
-            if(ancientReaderView) ancientReaderView.classList.remove('hidden');
-        });
+      showAncientReaderBtn.addEventListener("click", () => {
+        if (ancientReaderView) ancientReaderView.classList.remove("hidden");
+      });
     }
 
     if (closeAncientReaderBtn) {
-        closeAncientReaderBtn.addEventListener('click', () => {
-            if(ancientReaderView) ancientReaderView.classList.add('hidden');
-        });
+      closeAncientReaderBtn.addEventListener("click", () => {
+        if (ancientReaderView) ancientReaderView.classList.add("hidden");
+      });
     }
 
     // PWA Install Prompt Listener
@@ -213,9 +217,24 @@ class BibleStudyApp {
     const content = document.getElementById("bibleContent");
     if (!content) return;
 
-    if (!data.verses || data.verses.length === 0) {
-      content.innerHTML =
-        '<div class="text-center text-slate-500">No verses found</div>';
+    // Handle fetch failure gracefully (file:// protocol, network issues)
+    if (!data || !data.verses || data.verses.length === 0) {
+      content.innerHTML = `
+        <div class="text-center text-red-500 p-8 space-y-4">
+          <i data-lucide="wifi-off" class="w-16 h-16 mx-auto opacity-75"></i>
+          <h3 class="text-lg font-semibold">Cannot Load Bible Text</h3>
+          <p class="text-sm">API blocked by file:// protocol or network error.</p>
+          <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs">
+            <strong>Quick Fix:</strong> Right-click index.html → <strong>Open with Live Server</strong><br>
+            Opens http://127.0.0.1:5500/ → Bible loads instantly
+          </div>
+          <details class="text-xs text-slate-600 mt-4">
+            <summary>Console Errors? (F12 → Console)</summary>
+            <pre class="mt-2 p-2 bg-slate-100 rounded text-xs overflow-auto max-h-32">Copy/paste errors here for further help</pre>
+          </details>
+        </div>
+      `;
+      lucide.createIcons();
       return;
     }
 
