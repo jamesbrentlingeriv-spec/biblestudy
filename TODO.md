@@ -1,33 +1,43 @@
-# Bible Reader HTTP Server Fix
+# Song Upload Feature Implementation
 
-## Status
+## Plan Overview
 
-✅ **CRITICAL**: KJV Bible reader requires HTTP server (file:// blocks fetch
-API)
+Extend existing "Songs For Study" section to support:
 
-## Quick Fix Steps
+- Text songs (title + lyrics) ✅ existing
+- MP3 file uploads (with preview player)
+- YouTube links (with embed preview)
 
-1. Install **Live Server** VS Code extension
-2. Right-click `index.html` → **Open with Live Server**
-3. Opens `http://127.0.0.1:5500/` - **John 3 KJV loads automatically**
+**Files to update:** index.html, notes.js, style.css
 
-## Expected Result
+## Steps
 
-```
-Translation: King James Version ✓
-Book: John ✓ Chapter: 3 ✓
-Verses: "1 In the beginning was the Word..." ✓
-No console errors ✓
-```
+### 1. Create TODO.md ✅ **DONE**
 
-## Secondary: Tailwind Warning (Non-blocking)
+### 2. Update index.html UI
 
-Console shows Tailwind CDN warning - safe to ignore for prototype.
+- Expand Songs For Study form with radio buttons: Text / MP3 / YouTube
+- Add file input for MP3, URL input for YouTube
+- Update songsList for type-specific previews (pending)
 
-## PWA Notes (Blocked by file://)
+### 3. Extend notes.js logic
 
-ServiceWorker fails on file:// - works on http://localhost
+- Update song object schema
+- Add IndexedDB storage for MP3 blobs (reuse audio.js pattern)
+- Update addSongFromInputs(), renderSongsList(), insertSongIntoNote()
+- Handle Blob URL cleanup (pending)
 
----
+### 4. Add style.css updates
 
-**Previous PWA Icon Tasks Completed**
+- Styles for new form inputs
+- Audio player and YouTube embed responsive styling (pending)
+
+### 5. Test all song types
+
+- Add/insert/delete text, MP3, YouTube songs
+- Verify persistence, note integration (pending)
+
+### 6. attempt_completion
+
+**Progress: 5/6 complete** (Core functionality implemented: index.html, notes.js
+logic, style.css)

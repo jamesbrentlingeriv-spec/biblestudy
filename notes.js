@@ -610,36 +610,107 @@ class NotesManager {
     lucide.createIcons();
   }
 
-  addSongFromInputs() {
+  async addSongFromInputs() {
     const titleEl = document.getElementById("songTitleInput");
-    const lyricsEl = document.getElementById("songLyricsInput");
-    if (!titleEl || !lyricsEl) return;
+    if (!titleEl) return;
 
     const title = titleEl.value.trim();
-    const lyrics = lyricsEl.value.trim();
-
     if (!title) {
       this.showToast("Song title is required");
       return;
     }
-    if (!lyrics) {
-      this.showToast("Song lyrics are required");
-      return;
-    }
 
+    const mode =
+      document.querySelector('input[name="songMode"]:checked')?.value || "text";
     this.ensureCurrentNoteId();
-    this.currentSongs.push({
+
+    let songData = {
       id: Date.now(),
       title,
-      lyrics,
+      type: mode,
       createdAt: new Date().toISOString(),
-    });
+    };
 
-    titleEl.value = "";
-    lyricsEl.value = "";
-    this.renderSongsList();
-    this.saveCurrentNote();
-    this.showToast("Song saved to current study");
+    try {
+      if (mode === "text") {
+        const lyricsEl = document.getElementById("songLyricsInput");
+        songData.lyrics = lyricsEl?.value.trim() || "";
+        if (!songData.lyrics) {
+          this.showToast("Lyrics are required for text songs");
+          return;
+        }
+      } else if (mode === "mp3") {
+        const fileInput = document.getElementById("songMp3Input");
+        const file = fileInput?.files[0];
+        if (!file || !file.type.startsWith("audio/")) {
+          this.showToast("Please select a valid audio file (MP3 recommended)");
+          return;
+        }
+        // Store blob reference
+        songData.blob = file;
+        songData.fileName = file.name;
+        songData.fileUrl = URL.createObjectURL(file);
+        // Preview
+        const preview = document.getElementById("songMp3Preview");
+        if (preview) {
+          preview.src = songData.fileUrl;
+          preview.classList.remove("hidden");
+        }
+      } else if (mode === "youtube") {
+        const urlEl = document.getElementById("songYoutubeInput");
+        const url = urlEl?.value.trim();
+        if (!url) {
+          this.showToast("YouTube URL is required");
+          return;
+        }
+        if (!this.isValidYouTubeUrl(url)) {
+          this.showToast("Please enter a valid YouTube URL");
+          return;
+        }
+        songData.youtubeUrl = url;
+        songData.youtubeId = this.extractYouTubeId(url);
+        // Show preview
+        this.updateYouTubePreview(url);
+      }
+
+      this.currentSongs.push(songData);
+
+      // Clear form
+      titleEl.value = "";
+      document.getElementById("songLyricsInput")?.value = "";
+      document.getElementById("songMp3Input")?.value = "";
+      document.getElementById("songYoutubeInput")?.value = "";
+      document.getElementById("songMp3Preview")?.classList.add("hidden");
+      document.getElementById("songYoutubePreview")?.classList.add("hidden");
+
+      this.renderSongsList();
+      await this.saveSongsToStorage();
+      this.showToast(`${mode.toUpperCase()} song "${title}" added`);
+    } catch (error) {
+      console.error("Error adding song:", error);
+      this.showToast("Failed to add song");
+    }
+  }
+
+  isValidYouTubeUrl(url) {
+    const ytRegex =
+      /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)/;
+    return ytRegex.test(url);
+  }
+
+  extractYouTubeId(url) {
+    const regExp =
+      /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return match && match[2].length === 11 ? match[2] : null;
+  }
+
+  updateYouTubePreview(url) {
+    const preview = document.getElementById("songYoutubePreview");
+    if (preview && this.extractYouTubeId(url)) {
+      preview.innerHTML = `<iframe src="https://www.youtube.com/embed/${this.extractYouTubeId(url)}?rel=0" frameborder="0" allowfullscreen></iframe>`;
+      preview.classList.remove("hidden");
+    }
   }
 
   renderSongsList() {
@@ -657,21 +728,50 @@ class NotesManager {
       .slice()
       .reverse()
       .map((song) => {
-        const lyricsPreview = song.lyrics.replace(/\s+/g, " ").trim();
-        return `
-          <div class="song-item">
-            <div class="song-item-header">
-              <div class="song-item-title">${song.title}</div>
-              <button class="song-item-delete" data-delete-song-id="${song.id}" title="Delete song">
-                <i data-lucide="x" class="w-3.5 h-3.5"></i>
-              </button>
+        let previewHtml = "";
+        let typeBadge = `<span class="song-type-badge song-type-${song.type}">${song.type.toUpperCase()}</span>`;
+
+        if (song.type === "text") {
+          const lyricsPreview =
+            (song.lyrics || "").replace(/\s+/g, " ").trim().substring(0, 80) +
+            "...";
+          previewHtml = `<div class="song-item-preview">${lyricsPreview}</div>`;
+        } else if (song.type === "mp3") {
+          previewHtml = `
+          <div class="song-preview-container">
+            <audio class="song-mp3-player" controls preload="metadata">
+              <source src="${song.fileUrl}" type="${song.blob?.type || "audio/mpeg"}">
+              Your browser does not support the audio element.
+            </audio>
+          </div>`;
+        } else if (song.type === "youtube") {
+          previewHtml = `
+          <div class="song-preview-container">
+            <div class="song-youtube-embed">
+              <iframe src="https://www.youtube.com/embed/${song.youtubeId}?rel=0" 
+                      title="${song.title}" 
+                      frameborder="0" 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                      allowfullscreen>
+              </iframe>
             </div>
-            <div class="song-item-preview">${lyricsPreview}</div>
-            <button class="song-item-insert" data-insert-song-id="${song.id}">
-              Insert Into Note
+          </div>`;
+        }
+
+        return `
+        <div class="song-item">
+          <div class="song-item-header">
+            <div class="song-item-title">${song.title} ${typeBadge}</div>
+            <button class="song-item-delete" data-delete-song-id="${song.id}" title="Delete song">
+              <i data-lucide="x" class="w-3.5 h-3.5"></i>
             </button>
           </div>
-        `;
+          ${previewHtml}
+          <button class="song-item-insert" data-insert-song-id="${song.id}">
+            Insert Into Note
+          </button>
+        </div>
+      `;
       })
       .join("");
 

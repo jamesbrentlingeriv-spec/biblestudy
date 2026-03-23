@@ -212,18 +212,50 @@ Tip: Type verse references like 'John 3:16' or 'Genesis 1:1-3' and they will app
                     </div>
 
                     <h3 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Songs For Study</h3>
-                    <div class="space-y-2 mb-4">
+                    <div class="space-y-3 mb-4">
                         <input id="songTitleInput" type="text" placeholder="Song title (required)"
                             class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
-                        <textarea id="songLyricsInput" rows="4" placeholder="Type or paste lyrics..."
-                            class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none resize-y"></textarea>
+
+                        <div class="song-input-modes space-y-2">
+                            <label class="flex items-center gap-2 text-xs">
+                                <input type="radio" name="songMode" value="text" checked
+                                    class="rounded border-slate-300 text-indigo-600 text-xs focus:ring-indigo-500">
+                                <span>Text/Lyrics</span>
+                            </label>
+                            <label class="flex items-center gap-2 text-xs">
+                                <input type="radio" name="songMode" value="link"
+                                    class="rounded border-slate-300 text-indigo-600 text-xs focus:ring-indigo-500">
+                                <span>YouTube/Spotify Link</span>
+                            </label>
+
+                        </div>
+
+                        <!-- Text mode fields -->
+                        <div id="songTextFields" class="song-fields space-y-2">
+                            <textarea id="songLyricsInput" rows="3" placeholder="Lyrics (optional)..."
+                                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none resize-y"></textarea>
+                        </div>
+
+                        <!-- Link mode fields -->
+                        <div id="songLinkFields" class="song-fields hidden space-y-2">
+                            <input id="songLinkInput" type="url"
+                                placeholder="https://youtube.com/watch?v=... or https://open.spotify.com/..."
+                                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+                            <div id="songLinkPreview"
+                                class="hidden p-2 bg-slate-100 rounded-lg aspect-video w-full flex items-center justify-center text-xs text-slate-500">
+                                Paste YouTube or Spotify link for preview
+                            </div>
+                        </div>
+
+
+
                         <button id="addSongBtn"
                             class="w-full text-left px-3 py-2 rounded-lg bg-indigo-50 hover:bg-indigo-100 transition-all text-sm text-indigo-700 flex items-center gap-2">
                             <i data-lucide="music-4" class="w-4 h-4"></i>
                             Add Song To Study
                         </button>
                     </div>
-                    <div id="songsList" class="space-y-2 max-h-56 overflow-y-auto mb-4">
+                    <div id="songsList" class="space-y-2 max-h-64 overflow-y-auto mb-4">
                         <div class="text-xs text-slate-400">Songs you add will appear here</div>
                     </div>
 
